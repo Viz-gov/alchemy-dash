@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 type RangeSliderProps = {
   min?: number;
@@ -195,6 +197,11 @@ function RangeSlider({
 }
 
 export default function V2Page() {
+  const globeRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const animationIdRef = useRef<number | null>(null);
+
   // Fixed start date: January 1, 2020
   const fixedStartDate = new Date(2020, 0, 1);
   // End date: today's date
@@ -223,6 +230,100 @@ export default function V2Page() {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
   };
+
+  // Initialize 3D Globe
+  useEffect(() => {
+    if (!globeRef.current) return;
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    sceneRef.current = scene;
+
+    // Camera setup
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 10);
+    camera.position.set(4, 0, 0);
+
+    // Renderer setup
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(400, 400);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    globeRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 1.5;
+    controls.maxDistance = 3;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.5;
+    controls.update();
+
+    // World texture and sphere
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('/world.jpg');
+    const geometry = new THREE.SphereGeometry(1, 64, 32);
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.y = Math.PI * -0.5; // Look at Europe initially
+    scene.add(mesh);
+
+    // Atmosphere effect
+    const atmosphereShader = {
+      uniforms: {},
+      vertexShader: [
+        "varying vec3 vNormal;",
+        "void main() {",
+        "vNormal = normalize( normalMatrix * normal );",
+        "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+        "}"
+      ].join("\n"),
+      fragmentShader: [
+        "varying vec3 vNormal;",
+        "void main() {",
+        "float intensity = pow( 0.8 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 12.0 );",
+        "gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;",
+        "}"
+      ].join("\n")
+    };
+
+    const atmosphereGeometry = new THREE.SphereGeometry(1.07, 40, 30);
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      uniforms: atmosphereShader.uniforms,
+      vertexShader: atmosphereShader.vertexShader,
+      fragmentShader: atmosphereShader.fragmentShader,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
+
+    const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    atmosphereMesh.scale.set(1.1, 1.1, 1.1);
+    scene.add(atmosphereMesh);
+
+    // Animation loop
+    const animate = () => {
+      animationIdRef.current = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Cleanup
+    return () => {
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+      }
+      if (globeRef.current && renderer.domElement) {
+        globeRef.current.removeChild(renderer.domElement);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-black">
@@ -316,10 +417,32 @@ export default function V2Page() {
                   minGap={1}
                 />
               </div>
-
+              
               {/* Range info */}
               <div className="text-center text-sm text-gray-400">
                 Range: {Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+              </div>
+            </div>
+          </div>
+
+          {/* 3D Globe Card */}
+          <div className="mb-20">
+            <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-semibold text-white mb-2">Interactive World</h3>
+                <p className="text-gray-400">Explore our beautiful planet in 3D</p>
+              </div>
+              
+              {/* Globe Container */}
+              <div className="flex justify-center">
+                <div 
+                  ref={globeRef} 
+                  className="w-96 h-96 rounded-xl overflow-hidden border border-gray-700/50"
+                ></div>
+              </div>
+              
+              <div className="text-center mt-4 text-sm text-gray-500">
+                Drag to rotate • Scroll to zoom • Auto-rotating
               </div>
             </div>
           </div>
