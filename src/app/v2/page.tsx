@@ -568,8 +568,8 @@ export default function V2Page() {
     avgResponse: 0
   });
 
-  // Fixed start date: January 1, 2020
-  const fixedStartDate = new Date(2020, 0, 1);
+  // Fixed start date: June 1, 2025
+  const fixedStartDate = new Date(2025, 5, 1);
   // End date: today's date
   const today = new Date();
   
