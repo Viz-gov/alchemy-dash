@@ -1381,14 +1381,9 @@ export default function V2Page() {
 
           {/* BELOW the hero grid: globe or other sections */}
           <div className="mt-16">
-            {/* Three column layout: Left Card | Globe | Right Card */}
-            <div className="grid gap-8 items-start" style={{ gridTemplateColumns: '600px 1fr 1fr' }}>
-              {/* Left Card */}
-              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-purple-500/30 aspect-square">
-                {/* Empty card for now */}
-              </div>
-
-              {/* Center Globe */}
+            {/* Two column layout: Globe | Right Card */}
+            <div className="grid gap-8 items-start" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              {/* Globe - takes up left space */}
               <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 aspect-square outline outline-1 outline-green-500/30">
                 <div className="flex justify-center items-center h-full">
                   <div 
@@ -1435,7 +1430,7 @@ export default function V2Page() {
                         <div className="pt-4 border-t border-gray-600/50 text-center">
                           <span className="text-sm text-gray-400">
                             Total: {Object.values(countryCategoryData).reduce((sum, data) => sum + data.requests, 0).toLocaleString()} requests
-                          </span>
+            </span>
                         </div>
                       </div>
                     ) : (
@@ -1469,7 +1464,7 @@ export default function V2Page() {
                     {selectedCountry && (
                       <span className="text-blue-400 ml-3">
                         - {getCountryName(selectedCountry)}
-                      </span>
+            </span>
                     )}
                   </h2>
                   <p className="text-gray-400">
@@ -1516,7 +1511,7 @@ export default function V2Page() {
                                 <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                                   <span className="text-blue-400 text-sm font-semibold">
                                     {dapp.dapp_name.charAt(0).toUpperCase()}
-                                  </span>
+            </span>
                                 </div>
                                 <div>
                                   <div className="text-white font-medium">{dapp.dapp_name}</div>
@@ -1527,14 +1522,14 @@ export default function V2Page() {
                             <td className="py-4 px-6">
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
                                 {dapp.category}
-                              </span>
+            </span>
                             </td>
                             <td className="py-4 px-6">
                               <div className="flex flex-wrap gap-1">
                                 {dapp.chains.map((chain, chainIndex) => (
                                   <span key={chainIndex} className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-700/50 text-gray-300 border border-gray-600/50">
                                     {chain}
-                                  </span>
+            </span>
                                 ))}
                               </div>
                             </td>
