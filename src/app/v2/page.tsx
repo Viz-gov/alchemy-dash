@@ -568,6 +568,35 @@ export default function V2Page() {
     avgResponse: 0
   });
 
+  // State for selected country and category data
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [countryCategoryData, setCountryCategoryData] = useState<{[key: string]: any}>({});
+  const [countryDappData, setCountryDappData] = useState<Array<{
+    dapp_id: number;
+    dapp_name: string;
+    category: string;
+    chains: string[];
+    total_requests: number;
+    unique_users: number;
+  }>>([]);
+  
+  // State for hover tooltip
+  const [hoverTooltip, setHoverTooltip] = useState<{
+    visible: boolean;
+    countryCode: string;
+    countryName: string;
+    totalRequests: number;
+    x: number;
+    y: number;
+  }>({
+    visible: false,
+    countryCode: '',
+    countryName: '',
+    totalRequests: 0,
+    x: 0,
+    y: 0
+  });
+
   // Fixed start date: June 1, 2025
   const fixedStartDate = new Date(2025, 5, 1);
   // End date: today's date
@@ -676,6 +705,186 @@ export default function V2Page() {
     }
   }, []);
 
+  // Fetch country category data when a country is selected
+  const fetchCountryCategoryData = useCallback(async (countryCode: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('aggregated_country_chain_category')
+        .select('*')
+        .ilike('country', countryCode)
+        .gte('date', startDate)
+        .lte('date', endDate);
+
+      if (error) throw error;
+
+      // Aggregate by category
+      const categoryTotals: {[key: string]: { requests: number; volume: number; users: number } } = {};
+      
+      if (data && data.length > 0) {
+        data.forEach(row => {
+          if (!categoryTotals[row.category]) {
+            categoryTotals[row.category] = { requests: 0, volume: 0, users: 0 };
+          }
+          categoryTotals[row.category].requests += row.total_requests || 0;
+          categoryTotals[row.category].volume += row.tx_volume_usd || 0;
+          categoryTotals[row.category].users += row.unique_users || 0;
+        });
+      }
+
+      setCountryCategoryData(categoryTotals);
+    } catch (error) {
+      console.error('Error fetching country category data:', error);
+      setCountryCategoryData({});
+    }
+  }, [startDate, endDate]);
+
+  // Fetch country dapp data when a country is selected
+  const fetchCountryDappData = useCallback(async (countryCode: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('aggregated_country_chain_category_dapps')
+        .select('*')
+        .ilike('country', countryCode)
+        .gte('date', startDate)
+        .lte('date', endDate);
+
+      if (error) throw error;
+
+      // Aggregate dapp data to avoid duplicates
+      const dappAggregated: { [key: string]: {
+        dapp_id: number;
+        dapp_name: string;
+        category: string;
+        chains: string[];
+        total_requests: number;
+        unique_users: number;
+      }} = {};
+
+      if (data && data.length > 0) {
+        data.forEach(row => {
+          const key = `${row.dapp_name}-${row.category}`;
+          
+          if (!dappAggregated[key]) {
+            dappAggregated[key] = {
+              dapp_id: row.dapp_id,
+              dapp_name: row.dapp_name,
+              category: row.category,
+              chains: [],
+              total_requests: 0,
+              unique_users: 0
+            };
+          }
+          
+          dappAggregated[key].total_requests += row.total_requests || 0;
+          dappAggregated[key].unique_users += row.unique_users || 0;
+          
+          if (!dappAggregated[key].chains.includes(row.chain)) {
+            dappAggregated[key].chains.push(row.chain);
+          }
+        });
+      }
+
+      // Convert to array and sort by total requests
+      const aggregatedArray = Object.values(dappAggregated)
+        .sort((a, b) => b.total_requests - a.total_requests)
+        .slice(0, 30); // Limit to top 30 dapps
+
+      setCountryDappData(aggregatedArray);
+    } catch (error) {
+      console.error('Error fetching country dapp data:', error);
+      setCountryDappData([]);
+    }
+  }, [startDate, endDate]);
+
+  // Helper function to get country name from country code
+  const getCountryName = (countryCode: string): string => {
+    const countryNames: { [key: string]: string } = {
+      'ES': 'Spain',
+      'IN': 'India', 
+      'CA': 'Canada',
+      'DE': 'Germany',
+      'FR': 'France',
+      'GB': 'United Kingdom',
+      'BR': 'Brazil',
+      'CN': 'China',
+      'AU': 'Australia'
+    };
+    return countryNames[countryCode] || countryCode;
+  };
+
+  // Handle country click on globe
+  const handleCountryClick = (countryCode: string) => {
+    setSelectedCountry(countryCode);
+    fetchCountryCategoryData(countryCode);
+    fetchCountryDappData(countryCode);
+  };
+
+  // Handle mouse move for hover tooltip
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!globeRef.current) return;
+    
+    const rect = globeRef.current.getBoundingClientRect();
+    const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Check if we're hovering over the globe
+    if (mouseX >= -1 && mouseX <= 1 && mouseY >= -1 && mouseY <= 1) {
+      // For now, show a simple tooltip based on mouse position
+      // In a full implementation, you'd use Three.js raycaster here
+      const countryCode = getCountryFromMousePosition(mouseX, mouseY);
+      
+      if (countryCode) {
+        const countryName = getCountryName(countryCode);
+        const totalRequests = Math.floor(Math.random() * 1000) + 100; // Placeholder
+        
+        console.log(`Hover detected: ${countryCode} (${countryName}) at coordinates (${mouseX.toFixed(2)}, ${mouseY.toFixed(2)})`);
+        
+        setHoverTooltip({
+          visible: true,
+          countryCode,
+          countryName,
+          totalRequests,
+          x: event.clientX,
+          y: event.clientY
+        });
+      } else {
+        console.log(`No country detected at coordinates (${mouseX.toFixed(2)}, ${mouseY.toFixed(2)})`);
+        setHoverTooltip(prev => ({ ...prev, visible: false }));
+      }
+    } else {
+      setHoverTooltip(prev => ({ ...prev, visible: false }));
+    }
+  }, []);
+
+  // Helper function to get country from mouse position (simplified)
+  const getCountryFromMousePosition = (mouseX: number, mouseY: number): string | null => {
+    // Convert mouse coordinates to approximate country detection
+    // This is a simplified approach - in reality you'd use proper 3D raycaster
+    
+    // Top hemisphere (Northern countries)
+    if (mouseY > 0.3) {
+      if (mouseX > -0.4 && mouseX < 0.4) return 'GB'; // UK - center top
+      if (mouseX > -0.3 && mouseX < 0.3 && mouseY > 0.4) return 'FR'; // France - center top
+      if (mouseX > 0.0 && mouseX < 0.5 && mouseY > 0.3) return 'DE'; // Germany - right center
+      if (mouseX > -0.5 && mouseX < -0.2 && mouseY > 0.3) return 'ES'; // Spain - left center
+      if (mouseX > -0.8 && mouseX < -0.4 && mouseY > 0.2) return 'CA'; // Canada - far left
+    }
+    
+    // Middle band (equatorial countries)
+    if (mouseY > -0.2 && mouseY < 0.4) {
+      if (mouseX > 0.6 && mouseX < 1.0) return 'IN'; // India - far right
+      if (mouseX > 0.7 && mouseX < 1.0 && mouseY > 0.0) return 'CN'; // China - right
+      if (mouseX > -0.6 && mouseX < -0.2 && mouseY > -0.1) return 'BR'; // Brazil - left
+    }
+    
+    // Bottom hemisphere (Southern countries)
+    if (mouseY < -0.1) {
+      if (mouseX > 0.7 && mouseX < 1.0) return 'AU'; // Australia - bottom right
+    }
+    
+    return null;
+  };
+
   // Fetch initial data and when dates change
   useEffect(() => {
     if (startDate && endDate) {
@@ -736,6 +945,131 @@ export default function V2Page() {
     mesh.rotation.y = Math.PI * -0.5; // Look at Europe initially
     scene.add(mesh);
 
+    // Load GeoJSON country data and create country meshes
+    const loadCountries = async () => {
+      try {
+        // Using a public GeoJSON source for world countries
+        const response = await fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson');
+        const geoData = await response.json();
+        
+        // Create country meshes
+        geoData.features.forEach((feature: any) => {
+          const countryCode = feature.properties.ISO_A2;
+          if (countryCode && countryCode !== 'undefined') {
+            // Create a simple sphere for each country (we'll enhance this later)
+            const countryGeometry = new THREE.SphereGeometry(1.001, 32, 16);
+            const countryMaterial = new THREE.MeshBasicMaterial({ 
+              color: 0x8b5cf6, 
+              transparent: true, 
+              opacity: 0.1,
+              side: THREE.DoubleSide 
+            });
+            const countryMesh = new THREE.Mesh(countryGeometry, countryMaterial);
+            
+            // Store country code in the mesh for identification
+            (countryMesh as any).countryCode = countryCode;
+            
+            // Position based on country coordinates (simplified)
+            const coords = getCountryCoordinates(countryCode);
+            if (coords) {
+              countryMesh.position.set(coords.x, coords.y, coords.z);
+            }
+            
+            scene.add(countryMesh);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading GeoJSON:', error);
+        // Fallback: create simple country spheres
+        createFallbackCountries();
+      }
+    };
+
+    // Fallback country creation if GeoJSON fails
+    const createFallbackCountries = () => {
+      const countries = [
+        { code: 'ES', lat: 40, lon: -3 },    // Spain
+        { code: 'IN', lat: 20, lon: 77 },    // India
+        { code: 'CA', lat: 56, lon: -106 },  // Canada
+        { code: 'DE', lat: 51, lon: 10 },    // Germany
+        { code: 'FR', lat: 46, lon: 2 },     // France
+        { code: 'GB', lat: 55, lon: -3 },    // UK
+        { code: 'BR', lat: -10, lon: -55 },  // Brazil
+        { code: 'CN', lat: 35, lon: 105 },   // China
+        { code: 'AU', lat: -25, lon: 135 }   // Australia
+      ];
+
+      countries.forEach(country => {
+        const countryGeometry = new THREE.SphereGeometry(1.001, 32, 16);
+        const countryMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0x8b5cf6, 
+          transparent: true, 
+          opacity: 0.1,
+          side: THREE.DoubleSide 
+        });
+        const countryMesh = new THREE.Mesh(countryGeometry, countryMaterial);
+        
+        // Store country code
+        (countryMesh as any).countryCode = country.code;
+        
+        // Convert lat/lon to 3D position
+        const phi = (90 - country.lat) * (Math.PI / 180);
+        const theta = (country.lon + 180) * (Math.PI / 180);
+        const x = -(1 * Math.sin(phi) * Math.cos(theta));
+        const z = (1 * Math.sin(phi) * Math.sin(theta));
+        const y = (1 * Math.cos(phi));
+        
+        countryMesh.position.set(x, y, z);
+        scene.add(countryMesh);
+      });
+    };
+
+    // Helper function to get country coordinates
+    const getCountryCoordinates = (countryCode: string) => {
+      const coordinates: { [key: string]: { x: number; y: number; z: number } } = {
+        'ES': { x: -0.5, y: 0.7, z: 0.5 },      // Spain
+        'IN': { x: 0.8, y: 0.3, z: 0.5 },       // India
+        'CA': { x: -0.8, y: 0.6, z: 0.2 },      // Canada
+        'DE': { x: 0.2, y: 0.6, z: 0.8 },       // Germany
+        'FR': { x: -0.1, y: 0.7, z: 0.7 },      // France
+        'GB': { x: -0.2, y: 0.8, z: 0.6 },      // UK
+        'BR': { x: -0.6, y: -0.2, z: 0.8 },     // Brazil
+        'CN': { x: 0.9, y: 0.4, z: 0.2 },       // China
+        'AU': { x: 0.9, y: -0.4, z: 0.2 }       // Australia
+      };
+      return coordinates[countryCode];
+    };
+
+    // Helper function to get total requests for a country
+    const getCountryTotalRequests = (countryCode: string) => {
+      // Fetch real data from your database
+      const fetchCountryRequests = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('aggregated_country_chain_category')
+            .select('total_requests')
+            .ilike('country', countryCode)
+            .gte('date', startDate)
+            .lte('date', endDate);
+          
+          if (error) throw error;
+          
+          const totalRequests = data?.reduce((sum, row) => sum + (row.total_requests || 0), 0) || 0;
+          return totalRequests;
+        } catch (error) {
+          console.error('Error fetching country requests:', error);
+          return 0;
+        }
+      };
+      
+      // For now, return a placeholder. In a real implementation, you'd want to cache this data
+      // or fetch it asynchronously and update the tooltip
+      return Math.floor(Math.random() * 1000) + 100; // Placeholder random value
+    };
+
+    // Load countries
+    loadCountries();
+
     // Atmosphere effect (restored)
     const atmosphereShader = {
       uniforms: {},
@@ -769,6 +1103,70 @@ export default function V2Page() {
     atmosphereMesh.scale.set(1.1, 1.1, 1.1);
     scene.add(atmosphereMesh);
 
+    // Raycaster for click detection
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // Click handler for country selection
+    const onGlobeClick = (event: MouseEvent) => {
+      const rect = globeRef.current!.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      
+      // Check intersection with all country meshes first
+      const countryMeshes = scene.children.filter(child => (child as any).countryCode);
+      const countryIntersects = raycaster.intersectObjects(countryMeshes);
+      
+      if (countryIntersects.length > 0) {
+        const intersect = countryIntersects[0];
+        const countryCode = (intersect.object as any).countryCode;
+        
+        if (countryCode) {
+          handleCountryClick(countryCode);
+          console.log('Country clicked:', countryCode);
+        }
+      } else {
+        // Fallback: check intersection with main sphere
+        const intersects = raycaster.intersectObject(mesh);
+        if (intersects.length > 0) {
+          const intersect = intersects[0];
+          const point = intersect.point;
+          
+          // Convert 3D point to latitude/longitude
+          const lat = Math.asin(point.y) * (180 / Math.PI);
+          const lon = Math.atan2(point.x, point.z) * (180 / Math.PI);
+          
+          // Simple country detection based on coordinates
+          const countryCode = getCountryFromCoords(lat, lon);
+          
+          if (countryCode) {
+            handleCountryClick(countryCode);
+            console.log('Country detected by coordinates:', countryCode);
+          }
+        }
+      }
+    };
+
+    // Simple country detection function
+    const getCountryFromCoords = (lat: number, lon: number): string | null => {
+      // This is a simplified version - you'll want to use proper GeoJSON country boundaries
+      if (lat > 35 && lat < 45 && lon > -10 && lon < 5) return 'ES'; // Spain
+      if (lat > 5 && lat < 35 && lon > 70 && lon < 90) return 'IN'; // India
+      if (lat > 45 && lat < 70 && lon > -140 && lon < -50) return 'CA'; // Canada
+      if (lat > 45 && lat < 55 && lon > 5 && lon < 15) return 'DE'; // Germany
+      if (lat > 40 && lat < 50 && lon > -5 && lon < 10) return 'FR'; // France
+      if (lat > 50 && lat < 60 && lon > -10 && lon < 5) return 'GB'; // UK
+      if (lat > -35 && lat < 5 && lon > -75 && lon < -30) return 'BR'; // Brazil
+      if (lat > 20 && lat < 50 && lon > 70 && lon < 140) return 'CN'; // China
+      if (lat > -45 && lat < -10 && lon > 110 && lon < 155) return 'AU'; // Australia
+      return null;
+    };
+
+    // Add event listeners
+    globeRef.current.addEventListener('click', onGlobeClick);
+
     // Animation loop
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
@@ -788,19 +1186,38 @@ export default function V2Page() {
       if (globeRef.current && renderer.domElement) {
         globeRef.current.removeChild(renderer.domElement);
       }
+      if (globeRef.current) {
+        globeRef.current.removeEventListener('click', onGlobeClick);
+      }
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Moving Text Header */}
+      {/* Moving text header */}
       <div className="fixed top-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm border-b border-gray-700/50 z-50 overflow-hidden">
-        <div className="whitespace-nowrap animate-scroll">
-          <span className="inline-block text-green-400 font-mono text-sm px-4 py-2">
-            V2 • ALCH • $2,847.32 ▲ +2.4% • TECH • $1,234.56 ▼ -1.2% • INNOV • $567.89 ▲ +5.7% • FUTURE • $890.12 ▲ +3.1% • DIGITAL • $456.78 ▼ -0.8% • NEXT • $789.01 ▲ +4.2% • VISION • $345.67 ▲ +1.9% • BREAKTHROUGH • $678.90 ▲ +6.3% • REVOLUTION • $234.56 ▼ -2.1% • PARADIGM • $789.01 ▲ +3.8% • FRONTIER • $567.89 ▲ +2.7%
-          </span>
+        <div className="animate-scroll whitespace-nowrap text-sm text-gray-300 py-3">
+          📊 Chain Dashboard • Real-time blockchain analytics • Live transaction monitoring • Network performance metrics • DeFi protocol insights • Cross-chain data aggregation • API request tracking • User activity patterns • Volume analysis • Error rate monitoring • Response time optimization • Chain health status • Category breakdown • Geographic distribution • Temporal trends • Performance benchmarking
         </div>
       </div>
+
+      {/* Hover tooltip */}
+      {hoverTooltip.visible && (
+        <div 
+          className="fixed z-50 bg-gray-900/95 backdrop-blur-sm border border-purple-500/50 rounded-lg p-3 shadow-2xl pointer-events-none"
+          style={{
+            left: hoverTooltip.x + 15,
+            top: hoverTooltip.y - 15,
+            transform: 'translateY(-50%)'
+          }}
+        >
+          <div className="text-white font-semibold text-sm">{hoverTooltip.countryName}</div>
+          <div className="text-purple-400 text-xs">{hoverTooltip.countryCode}</div>
+          <div className="text-gray-300 text-xs mt-1">
+            Total Requests: {hoverTooltip.totalRequests.toLocaleString()}
+          </div>
+        </div>
+      )}
 
       {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-purple-900/20">
@@ -972,16 +1389,184 @@ export default function V2Page() {
               </div>
 
               {/* Center Globe */}
-              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-green-500/30 aspect-square">
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 aspect-square outline outline-1 outline-green-500/30">
                 <div className="flex justify-center items-center h-full">
-                  <div ref={globeRef} className="w-full h-full rounded-xl overflow-hidden" />
+                  <div 
+                    ref={globeRef} 
+                    className="w-full h-full rounded-xl overflow-hidden"
+                    onMouseMove={handleMouseMove}
+                  />
                 </div>
               </div>
 
-              {/* Right Card */}
-              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-orange-500/30 aspect-square">
-                {/* Empty card for now */}
+              {/* Right card */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 aspect-square outline outline-1 outline-orange-500/30">
+                {selectedCountry ? (
+                  <div className="h-full w-full flex flex-col">
+                    <h3 className="text-2xl font-bold text-white mb-6">
+                      {selectedCountry} Categories
+                    </h3>
+                    {Object.keys(countryCategoryData).length > 0 ? (
+                      <div className="flex-1 overflow-y-auto space-y-4">
+                        {Object.entries(countryCategoryData)
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([category, data]) => (
+                            <div key={category} className="bg-gray-800/60 rounded-lg p-4 border border-gray-600/50">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="text-lg font-semibold text-purple-400">{category}</span>
+                                <span className="text-sm text-gray-400">#{Object.keys(countryCategoryData).indexOf(category) + 1}</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-400">Requests:</span>
+                                  <div className="text-white font-semibold">{data.requests.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Volume:</span>
+                                  <div className="text-white font-semibold">${(data.volume / 1000).toFixed(1)}K</div>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Users:</span>
+                                  <div className="text-white font-semibold">{data.users.toLocaleString()}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        <div className="pt-4 border-t border-gray-600/50 text-center">
+                          <span className="text-sm text-gray-400">
+                            Total: {Object.values(countryCategoryData).reduce((sum, data) => sum + data.requests, 0).toLocaleString()} requests
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center text-gray-400">
+                          No category data available for {selectedCountry}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <div className="text-4xl mb-4">🌍</div>
+                      <div className="text-xl font-medium">Click on a country</div>
+                      <div className="text-sm">to see its categories</div>
+                    </div>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+
+          {/* DApps Breakdown Section - Wide end-to-end card */}
+          <div className="mt-16 px-8">
+            <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-blue-500/30">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2">
+                    DApps Breakdown
+                    {selectedCountry && (
+                      <span className="text-blue-400 ml-3">
+                        - {getCountryName(selectedCountry)}
+                      </span>
+                    )}
+                  </h2>
+                  <p className="text-gray-400">
+                    Individual decentralized applications and their performance metrics
+                  </p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {countryDappData.length > 0 
+                        ? countryDappData.reduce((sum, dapp) => sum + dapp.unique_users, 0).toLocaleString()
+                        : '0'
+                      }
+                    </div>
+                    <div className="text-sm text-gray-400">Total Users</div>
+                  </div>
+                </div>
+              </div>
+
+              {countryDappData.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-600/50">
+                        <th className="text-left py-4 px-6 text-sm font-medium text-gray-300">#</th>
+                        <th className="text-left py-4 px-6 text-sm font-medium text-gray-300">DApp Name</th>
+                        <th className="text-left py-4 px-6 text-sm font-medium text-gray-300">Category</th>
+                        <th className="text-left py-4 px-6 text-sm font-medium text-gray-300">Chains</th>
+                        <th className="text-right py-4 px-6 text-sm font-medium text-gray-300">Total Requests</th>
+                        <th className="text-right py-4 px-6 text-sm font-medium text-gray-300">% of Total</th>
+                        <th className="text-right py-4 px-6 text-sm font-medium text-gray-300">Unique Users</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {countryDappData.map((dapp, index) => {
+                        const totalRequests = countryDappData.reduce((sum, d) => sum + d.total_requests, 0);
+                        const percentage = totalRequests > 0 ? ((dapp.total_requests / totalRequests) * 100).toFixed(1) : '0';
+                        
+                        return (
+                          <tr key={dapp.dapp_id} className="border-b border-gray-700/30 hover:bg-gray-800/30 transition-colors">
+                            <td className="py-4 px-6 text-sm text-gray-400">{index + 1}</td>
+                            <td className="py-4 px-6">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                  <span className="text-blue-400 text-sm font-semibold">
+                                    {dapp.dapp_name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="text-white font-medium">{dapp.dapp_name}</div>
+                                  <div className="text-xs text-gray-400">ID: {dapp.dapp_id}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                {dapp.category}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex flex-wrap gap-1">
+                                {dapp.chains.map((chain, chainIndex) => (
+                                  <span key={chainIndex} className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-700/50 text-gray-300 border border-gray-600/50">
+                                    {chain}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              <div className="text-white font-semibold">{dapp.total_requests.toLocaleString()}</div>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              <div className="text-blue-400 font-semibold">{percentage}%</div>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              <div className="text-green-400 font-semibold">{dapp.unique_users.toLocaleString()}</div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-4">⚡</div>
+                  <div className="text-xl text-gray-400 mb-2">
+                    {selectedCountry 
+                      ? `No dapp data available for ${getCountryName(selectedCountry)}`
+                      : 'No country selected'
+                    }
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Click on a country on the globe to see its dapp breakdown
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
