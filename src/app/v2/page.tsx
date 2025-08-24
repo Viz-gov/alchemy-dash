@@ -3,6 +3,35 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  TimeScale,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  ArcElement,
+} from 'chart.js';
+import { Chart } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  TimeScale,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  ArcElement
+);
 
 type RangeSliderProps = {
   min?: number;
@@ -196,6 +225,325 @@ function RangeSlider({
   );
 }
 
+// Analytics Cards Component
+const AnalyticsCards = () => {
+  return (
+    <div className="grid grid-cols-4 gap-6">
+      {/* ————— Card 1 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">TOTAL VOLUME</h3>
+          <div className="flex items-center text-green-400 text-sm">
+            <span className="mr-1">▲</span>
+            +12.4%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">$2.4B</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Volume',
+                data: [2.1, 2.3, 2.8, 2.5, 2.9, 2.7, 2.4],
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 2 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">ACTIVE USERS</h3>
+          <div className="flex items-center text-green-400 text-sm">
+            <span className="mr-1">▲</span>
+            +8.7%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">847.2K</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Users',
+                data: [820, 835, 845, 840, 850, 848, 847],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 3 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">TRANSACTION COUNT</h3>
+          <div className="flex items-center text-red-400 text-sm">
+            <span className="mr-1">▼</span>
+            -2.1%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">156.8M</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Transactions',
+                data: [158, 157, 156, 155, 154, 155, 156],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 4 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">AVG GAS PRICE</h3>
+          <div className="flex items-center text-green-400 text-sm">
+            <span className="mr-1">▲</span>
+            +15.3%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">23.4 Gwei</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Gas Price',
+                data: [20, 22, 25, 23, 26, 24, 23],
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 5 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">BLOCK TIME</h3>
+          <div className="flex items-center text-green-400 text-sm">
+            <span className="mr-1">▲</span>
+            +3.2%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">12.1s</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Block Time',
+                data: [11.8, 11.9, 12.0, 12.1, 12.2, 12.1, 12.1],
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 6 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">NETWORK HASH</h3>
+          <div className="flex items-center text-red-400 text-sm">
+            <span className="mr-1">▼</span>
+            -1.8%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">847.2 TH/s</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Hash Rate',
+                data: [850, 848, 845, 843, 840, 842, 847],
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 7 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">MEMPOOL SIZE</h3>
+          <div className="flex items-center text-green-400 text-sm">
+            <span className="mr-1">▲</span>
+            +22.7%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">12.4K</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Mempool',
+                data: [10, 11, 13, 15, 18, 16, 12],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ————— Card 8 ————— */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-300">VALIDATORS</h3>
+          <div className="flex items-center text-green-400 text-sm">
+            <span className="mr-1">▲</span>
+            +5.9%
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-white mb-4">847.2K</div>
+        <div className="h-16">
+          <Chart
+            type="line"
+            data={{
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                label: 'Validators',
+                data: [800, 810, 820, 830, 840, 845, 847],
+                borderColor: '#f43f5e',
+                backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+              }],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { point: { radius: 0 } },
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function V2Page() {
   const globeRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -237,7 +585,7 @@ export default function V2Page() {
 
     // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    scene.background = new THREE.Color(0x111827); // Changed from 0x000000 (black) to 0x111827 (gray-900)
     sceneRef.current = scene;
 
     // Camera setup
@@ -246,7 +594,7 @@ export default function V2Page() {
 
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(400, 400);
+    renderer.setSize(globeRef.current.clientWidth, globeRef.current.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     globeRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -261,7 +609,7 @@ export default function V2Page() {
     controls.autoRotateSpeed = 0.5;
     controls.update();
 
-    // World texture and sphere
+    // World texture and sphere (restored working version)
     const loader = new THREE.TextureLoader();
     const texture = loader.load('/world.jpg');
     const geometry = new THREE.SphereGeometry(1, 64, 32);
@@ -270,7 +618,7 @@ export default function V2Page() {
     mesh.rotation.y = Math.PI * -0.5; // Look at Europe initially
     scene.add(mesh);
 
-    // Atmosphere effect
+    // Atmosphere effect (restored)
     const atmosphereShader = {
       uniforms: {},
       vertexShader: [
@@ -284,7 +632,7 @@ export default function V2Page() {
         "varying vec3 vNormal;",
         "void main() {",
         "float intensity = pow( 0.8 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 12.0 );",
-        "gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;",
+        "gl_FragColor = vec4( 1.0, 1.0, 1.0 ) * intensity;",
         "}"
       ].join("\n")
     };
@@ -327,208 +675,196 @@ export default function V2Page() {
 
   return (
     <div className="min-h-screen bg-black">
+      {/* Moving Text Header */}
+      <div className="fixed top-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm border-b border-gray-700/50 z-50 overflow-hidden">
+        <div className="whitespace-nowrap animate-scroll">
+          <span className="inline-block text-green-400 font-mono text-sm px-4 py-2">
+            V2 • ALCH • $2,847.32 ▲ +2.4% • TECH • $1,234.56 ▼ -1.2% • INNOV • $567.89 ▲ +5.7% • FUTURE • $890.12 ▲ +3.1% • DIGITAL • $456.78 ▼ -0.8% • NEXT • $789.01 ▲ +4.2% • VISION • $345.67 ▲ +1.9% • BREAKTHROUGH • $678.90 ▲ +6.3% • REVOLUTION • $234.56 ▼ -2.1% • PARADIGM • $789.01 ▲ +3.8% • FRONTIER • $567.89 ▲ +2.7%
+          </span>
+        </div>
+      </div>
+
       {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-purple-900/20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]"></div>
       </div>
       
-      <div className="relative container mx-auto px-4 py-16">
-        <div className="max-w-6xl mx-auto text-center">
-          {/* Main heading with glow effect */}
-          <div className="mb-12">
-            <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 mb-4 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
-              V2
-            </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Experience the future of our application with cutting-edge design and enhanced capabilities
-            </p>
-          </div>
+      <div className="relative py-16 pt-24">
+        <div className="px-8">
+          
+          {/* 🔍 wireframe overlay (turn off later) */}
+          <div className="pointer-events-none absolute inset-0
+                          [background:linear-gradient(to_right,rgba(168,85,247,.12)_1px,transparent_1px),
+                                      linear-gradient(to_bottom,rgba(168,85,247,.08)_1px,transparent_1px)]
+                          bg-[length:64px_1px,1px_64px]"></div>
 
-          {/* Date Range Component */}
-          <div className="mb-20">
-            <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">Date Range</h3>
-                <div className="flex items-center space-x-3">
-                  <button className="p-2 text-gray-400 hover:text-purple-400 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-purple-400 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-purple-400 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                    </svg>
-                  </button>
+          {/* 2-column hero layout */}
+          <div className="flex gap-10 items-stretch">
+            {/* LEFT: title + subtext + date controls */}
+            <aside className="w-[600px] flex-shrink-0 flex flex-col justify-between outline outline-1 outline-purple-500/30 rounded-xl p-2">
+              {/* Title and subtext at top */}
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 mb-3 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+                    Chain Dashboard
+                  </h1>
+                  <p className="text-xl text-gray-300 max-w-2xl">
+                    Monitor and analyze blockchain networks with real-time data and comprehensive insights
+                  </p>
                 </div>
               </div>
 
-              {/* Date Input Fields */}
-              <div className="flex items-center justify-between mb-8">
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={fixedStartDate.toISOString().split('T')[0]}
-                    max={endDate}
-                    className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all"
-                  />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
+              {/* Date range card - expanded to full width and positioned at bottom */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 w-full">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">Date Range</h3>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={() => {
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        const newStartDate = weekAgo.toISOString().split('T')[0];
+                        const newEndDate = today.toISOString().split('T')[0];
+                        setStartDate(newStartDate);
+                        setEndDate(newEndDate);
+                        
+                        // Update slider values
+                        const startDays = Math.round((weekAgo.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        const endDays = Math.round((today.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        handleSliderChange(startDays, endDays);
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-purple-500 rounded-lg text-gray-300 hover:text-white transition-all"
+                    >
+                      Past Week
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const monthAgo = new Date();
+                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                        const newStartDate = monthAgo.toISOString().split('T')[0];
+                        const newEndDate = today.toISOString().split('T')[0];
+                        setStartDate(newStartDate);
+                        setEndDate(newEndDate);
+                        
+                        // Update slider values
+                        const startDays = Math.round((monthAgo.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        const endDays = Math.round((today.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        handleSliderChange(startDays, endDays);
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-purple-500 rounded-lg text-xs"
+                    >
+                      Past Month
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const ytd = new Date(today.getFullYear(), 0, 1);
+                        const newStartDate = ytd.toISOString().split('T')[0];
+                        const newEndDate = today.toISOString().split('T')[0];
+                        setStartDate(newStartDate);
+                        setEndDate(newEndDate);
+                        
+                        // Update slider values
+                        const startDays = Math.round((ytd.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        const endDays = Math.round((today.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        handleSliderChange(startDays, endDays);
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-purple-500 rounded-lg text-gray-300 hover:text-white transition-all"
+                    >
+                      YTD
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const newStartDate = fixedStartDate.toISOString().split('T')[0];
+                        const newEndDate = today.toISOString().split('T')[0];
+                        setStartDate(newStartDate);
+                        setEndDate(newEndDate);
+                        
+                        // Update slider values
+                        const startDays = 0;
+                        const endDays = Math.round((today.getTime() - fixedStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                        handleSliderChange(startDays, endDays);
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-purple-500 rounded-lg text-gray-300 hover:text-white transition-all"
+                    >
+                      All Time
+                    </button>
                   </div>
+                </div>
+
+                {/* Date Input Fields */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      min={fixedStartDate.toISOString().split('T')[0]}
+                      max={endDate}
+                      className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                    />
+                  </div>
+                  
+                  <div className="text-gray-400 text-sm">to</div>
+                  
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
+                      max={today.toISOString().split('T')[0]}
+                      className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Range Slider */}
+                <div className="mb-4 flex justify-start">
+                  <RangeSlider
+                    min={0}
+                    max={totalDays}
+                    step={1}
+                    defaultLeft={startDays}
+                    defaultRight={endDays}
+                    onChange={handleSliderChange}
+                    minGap={1}
+                  />
                 </div>
                 
-                <div className="text-gray-400">to</div>
-                
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate}
-                    max={today.toISOString().split('T')[0]}
-                    className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all"
-                  />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
+                {/* Range info */}
+                <div className="text-left text-sm text-gray-400">
+                  Range: {Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                </div>
+              </div>
+            </aside>
+
+            {/* RIGHT: the 8 analytics cards */}
+            <main className="flex-1 outline outline-1 outline-sky-500/30 rounded-xl p-2">
+              <AnalyticsCards />
+            </main>
+          </div>
+
+          {/* BELOW the hero grid: globe or other sections */}
+          <div className="mt-16">
+            {/* Three column layout: Left Card | Globe | Right Card */}
+            <div className="grid gap-8 items-start" style={{ gridTemplateColumns: '600px 1fr 1fr' }}>
+              {/* Left Card */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-purple-500/30 aspect-square">
+                {/* Empty card for now */}
+              </div>
+
+              {/* Center Globe */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-green-500/30 aspect-square">
+                <div className="flex justify-center items-center h-full">
+                  <div ref={globeRef} className="w-full h-full rounded-xl overflow-hidden" />
                 </div>
               </div>
 
-              {/* Range Slider */}
-              <div className="mb-6 flex justify-center">
-                <RangeSlider
-                  min={0}
-                  max={totalDays}
-                  step={1}
-                  defaultLeft={startDays}
-                  defaultRight={endDays}
-                  onChange={handleSliderChange}
-                  minGap={1}
-                />
-              </div>
-              
-              {/* Range info */}
-              <div className="text-center text-sm text-gray-400">
-                Range: {Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+              {/* Right Card */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 outline outline-1 outline-orange-500/30 aspect-square">
+                {/* Empty card for now */}
               </div>
             </div>
-          </div>
-
-          {/* 3D Globe Card */}
-          <div className="mb-20">
-            <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-semibold text-white mb-2">Interactive World</h3>
-                <p className="text-gray-400">Explore our beautiful planet in 3D</p>
-              </div>
-              
-              {/* Globe Container */}
-              <div className="flex justify-center">
-                <div 
-                  ref={globeRef} 
-                  className="w-96 h-96 rounded-xl overflow-hidden border border-gray-700/50"
-                ></div>
-              </div>
-              
-              <div className="text-center mt-4 text-sm text-gray-500">
-                Drag to rotate • Scroll to zoom • Auto-rotating
-              </div>
-            </div>
-          </div>
-          
-          {/* Futuristic cards grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20">
-            {/* Card 1 - Lightning Fast */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:scale-105">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(168,85,247,0.3)]">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Lightning Fast</h3>
-                <p className="text-gray-400 leading-relaxed">Experience blazing fast performance with our optimized V2 architecture and advanced caching systems.</p>
-                <div className="mt-6 pt-4 border-t border-gray-700/50">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Performance</span>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Card 2 - Enhanced Features */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:scale-105">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(236,72,153,0.3)]">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Enhanced Features</h3>
-                <p className="text-gray-400 leading-relaxed">Discover new AI-powered capabilities and an intuitive interface designed for the modern user.</p>
-                <div className="mt-6 pt-4 border-t border-gray-700/50">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Innovation</span>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Card 3 - Next Gen Security */}
-            <div className="group relative md:col-span-2 lg:col-span-1">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:scale-105">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,211,238,0.3)]">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Next Gen Security</h3>
-                <p className="text-gray-400 leading-relaxed">Advanced encryption and biometric authentication for enterprise-grade security.</p>
-                <div className="mt-6 pt-4 border-t border-gray-700/50">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Protection</span>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* CTA Section */}
-          <div className="mt-20">
-            <button className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white font-semibold text-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
-              <span className="relative z-10">Launch V2 Experience</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
-            <p className="text-gray-500 mt-4 text-sm">Ready to explore the future?</p>
           </div>
         </div>
       </div>
